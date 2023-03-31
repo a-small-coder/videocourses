@@ -115,7 +115,7 @@ function Home(): JSX.Element {
                         my='100px'
                         display='flex'
                         justifyContent='flex-start'
-                        maxW='80%'
+                        maxW='80%'                        
                     >
                         <FAQ/>
                     </Box>

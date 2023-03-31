@@ -1,16 +1,31 @@
 import { HamburgerIcon, SearchIcon } from "@chakra-ui/icons";
-import { Box, Button, Container, Flex, Heading, IconButton, Input, InputGroup, InputLeftAddon, InputRightAddon, InputRightElement } from "@chakra-ui/react";
+import { Avatar, Box, Button, Container, Divider, Drawer, DrawerBody, DrawerCloseButton, DrawerContent, DrawerHeader, DrawerOverlay, Flex, Heading, IconButton, Input, InputGroup, InputRightElement, Text, useDisclosure, Icon } from "@chakra-ui/react";
+import { faker } from "@faker-js/faker";
 import { Formik, FormikProps } from "formik";
-import { useEffect } from "react";
+import { FC, PropsWithChildren, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { FaInstagram, FaTelegramPlane } from "react-icons/fa";
 
 
 function Header(): JSX.Element {
 
+    const [isAuth, setIsAuth] = useState(false)
+
+    const [state, setState] = useState<ISideMenuItem[]>([])
+
+    useEffect(() => {
+        setState(getSideMenuData())
+    }, [setState])
+
+    const sideMenuItems = state.map( smi => (
+        <SideMenuItem key={smi.id} link={smi.link} text={smi.text}/>
+    ))
 
     const menuItems = headerData.map( hd => (
         <HeaderMenuItem key={hd.id} {...hd}/>
     ))
+
+    const { isOpen, onOpen, onClose } = useDisclosure()
 
     return (
         <Box
@@ -84,11 +99,89 @@ function Header(): JSX.Element {
                             variant='outline'
                             size='lg'
                             borderRadius='15px'
+                            onClick={onOpen}
                         />
 
                     </Flex>
                 </Flex>
             </Container>
+            <SideMenu isOpen={isOpen} onClose={onClose}>
+
+                <Flex
+                    flexDir='column'
+                    height='100%'
+                >
+                    { isAuth ? (
+                            <Box
+                                mb='20px'
+                            >
+                                <SideMenuItem link='/login' text='вход в личный кабинет'/>
+                                <Divider/>
+                                <SideMenuItem link='/login' text='вход в личный кабинет'/>
+                                <Divider/>
+                                <SideMenuItem link='/login' text='вход в личный кабинет'/>
+                                <Divider/>
+                                
+                            </Box>
+                            ) : null
+                        }
+                    <Box flex='1 0' mb='20px'>
+                        {sideMenuItems}
+                    </Box>
+                    <Divider/>
+                        { !isAuth ? (
+                            <>
+                                <SideMenuItem link='/login' text='вход в личный кабинет'/>
+                                <Divider/>
+                            </>
+                            ) : null
+                        }
+                    <Flex
+                        flexDir='column'
+                        pb='10px'
+                    >
+                        <Flex
+                            gap='10px'
+                            p='15px 0'
+                        >
+                            <Link to='/instagram'>
+                                <Icon 
+                                    as={FaInstagram}
+                                    w='32px'
+                                    h='32px'
+                                    _hover={{color: 'blue.300'}}
+                                />
+                            </Link>
+                            
+                            <Link to='/telegram'>
+                                <Icon 
+                                    as={FaTelegramPlane}
+                                    w='32px'
+                                    h='32px'
+                                    _hover={{color: 'blue.300'}}
+                                />
+                            </Link>
+                            
+                        </Flex>
+                        <Text
+                            fontWeight='bold'
+                            mb='7px'
+                        >
+                            связаться с нами:
+                        </Text>
+                        <Link to='/feedback'>
+                            <Text
+                                fontSize='14px'
+                                textDecor='underline'
+                                _hover={{textDecor: 'none'}}
+                            >
+                                hello@mail.ru
+                            </Text>
+                        </Link>
+                    </Flex>
+                </Flex>
+                
+            </SideMenu>
         </Box>
     )
 }
@@ -184,6 +277,104 @@ function HeaderMenuItem({id, title, relativeHref}: HeaderCategories): JSX.Elemen
                 </Flex>
             </Link>
         </Box>
+    )
+}
+
+interface SideMenuProps extends PropsWithChildren{
+    onClose: ()=>void, 
+    isOpen: boolean,
+}
+
+// type PropsWithChildren<SideMenuProps> = SideMenuProps & { children?: ReactNode };
+
+const SideMenu: FC<SideMenuProps> = (props): JSX.Element => {
+
+    return (
+        <Drawer onClose={props.onClose} isOpen={props.isOpen} size={'sm'}>
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader>
+            <Flex
+                justifyContent='center'
+                alignItems='center'
+            >
+                <Link to='profile'>
+                    <Flex
+                        justifyContent='center'
+                        alignItems='center'
+                    >
+                        <Avatar
+                            src="https://i.pravatar.cc/300"
+                            size="md"
+                            mr='15px'
+                        />
+                    
+                        <Text
+                            fontSize='14px'
+                            _hover={{textDecor: 'underline'}}
+                        >
+                            user-profile@mail.ru
+                        </Text>
+                    </Flex>
+                </Link>
+            </Flex>
+          </DrawerHeader>
+          <DrawerBody>
+            {props.children}
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
+    )
+}
+
+interface ISideMenuItemProps {
+    link: string,
+    text: string
+}
+
+interface ISideMenuItem extends ISideMenuItemProps {
+    id: number
+}
+
+const getSideMenuData = (): ISideMenuItem[] => {
+
+    const sideMenuData: ISideMenuItem[] = []
+
+    for (let i = 0; i < 5; i++) {
+        sideMenuData.push({
+            id: i,
+            link: faker.lorem.lines(1).slice(0, 10),
+            text: faker.lorem.lines(1).slice(0, 10)
+        })
+        
+    }
+
+    return sideMenuData
+}
+
+
+
+const SideMenuItem: FC<ISideMenuItemProps> = (props): JSX.Element => {
+
+    return (
+        <Link to={props.link}>
+        <Flex
+                p='15px 25px'
+                borderRadius='15px'
+                my='10px'
+                textTransform='capitalize'
+                color='black'
+                bg='white'
+                w='100%'
+                _hover={{bg: 'blue.300', color: 'white'}}
+                fontSize='18px'
+            >
+                {props.text}
+
+            </Flex>
+
+            </Link>
     )
 }
 
